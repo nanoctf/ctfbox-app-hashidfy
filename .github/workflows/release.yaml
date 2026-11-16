@@ -1,0 +1,128 @@
+
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    name: Discover Go platforms
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.platforms.outputs.targets }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Discover supported targets
+        id: platforms
+        shell: bash
+        run: |
+          TARGETS=$(go tool dist list | grep -vE '^(android|ios)/' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "targets=$TARGETS" >> "$GITHUB_OUTPUT"
+          echo "Discovered targets: $TARGETS"
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: discover
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJson(needs.discover.outputs.targets) }}
+
+    # A failure on one target should not prevent other builds or releases.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Build binary
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          GOOS="${TARGET%/*}"
+          GOARCH="${TARGET#*/}"
+
+          mkdir -p dist
+
+          case "$GOOS/$GOARCH" in
+            js/wasm|wasip1/wasm)
+              EXT=".wasm"
+              ;;
+            windows/*)
+              EXT=".exe"
+              ;;
+            *)
+              EXT=""
+              ;;
+          esac
+
+          BINARY="hash-identify${EXT}"
+          ARCHIVE="hash-identify_${GOOS}_${GOARCH}.zip"
+
+          echo "Building for $GOOS/$GOARCH"
+
+          CGO_ENABLED=0 \
+          GOOS="$GOOS" \
+          GOARCH="$GOARCH" \
+          go build \
+            -trimpath \
+            -ldflags="-s -w -buildid=" \
+            -o "dist/$BINARY" .
+
+          cd dist
+          zip -j "$ARCHIVE" "$BINARY"
+          rm "$BINARY"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: dist/*.zip
