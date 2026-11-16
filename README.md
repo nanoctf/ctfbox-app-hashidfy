@@ -1,32 +1,38 @@
 # hash-identify
 
-A lightweight, cross-platform hash identification CLI written in Go.
+> A lightweight, cross-platform hash identification CLI written in Go.
 
-Identify possible hash algorithms using hash length, character patterns, and format prefixes. Built as a compact standalone executable with zero third-party dependencies.
+[![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8?logo=go&logoColor=white)](https://go.dev)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20BSD%20%7C%20WASM-informational)](#-supported-platforms)
+[![Release](https://img.shields.io/github/v/release/nanoctf/ctfbox-app-hashidfy?color=success)](https://github.com/nanoctf/ctfbox-app-hashidfy/releases)
+
+Identify possible hash algorithms using **hash length**, **character patterns**, and **format prefixes**. Built as a compact standalone executable with **zero third-party dependencies**.
 
 ---
 
 ## ✨ Features
 
- 
-🔎 Broad Detection Recognizes numerous common hash algorithms and variants.
-📊 Ranked Results Separates possible matches from less likely matches.
-💬 Interactive & CLI Modes Enter hashes interactively or pass them as arguments.
-📦 Standalone Binary No Python, runtime installation, or dependency management.
-🌍 Cross-Platform Builds for multiple operating systems and architectures.
-🪶 Lightweight Optimized builds with stripped debugging information.
+| | |
+|---|---|
+| 🔎 **Broad Detection** | Recognizes numerous common hash algorithms and variants. |
+| 📊 **Ranked Results** | Separates *possible* matches from *less likely* matches. |
+| 💬 **Interactive & CLI Modes** | Enter hashes interactively or pass them as arguments. |
+| 📦 **Standalone Binary** | No Python, runtime installation, or dependency management. |
+| 🌍 **Cross-Platform** | Builds for multiple operating systems and architectures. |
+| 🪶 **Lightweight** | Optimized builds with stripped debugging information. |
 
 ---
 
 ## 🚀 Usage
 
-Direct input
+### Direct input
 
 ```bash
 ./hash-identify 5d41402abc4b2a76b9719d911017c592
 ```
 
-Interactive mode
+### Interactive mode
 
 ```bash
 ./hash-identify
@@ -38,7 +44,7 @@ Enter a hash when prompted:
 --------------------------------------------------
 HASH: 5d41402abc4b2a76b9719d911017c592
 
-Possible Hashs:
+Possible Hashes:
   [+] MD5
   [+] NTLM
 ```
@@ -49,20 +55,20 @@ Press <kbd>Ctrl</kbd>+<kbd>C</kbd> to exit.
 
 ## 📦 Installation
 
-Prebuilt binaries
+### Prebuilt binaries
 
 Download the archive for your operating system and architecture from the
-GitHub Releases page.
+**[GitHub Releases](https://github.com/nanoctf/ctfbox-app-hashidfy/releases)** page.
 
 Extract the archive and execute the binary.
 
-Build from source
+### Build from source
 
-Requirements: Go version specified in go.mod.
+**Requirements:** Go version specified in [`go.mod`](go.mod).
 
 ```bash
 git clone https://github.com/nanoctf/ctfbox-app-hashidfy.git
-cd hash-identify
+cd ctfbox-app-hashidfy
 
 CGO_ENABLED=0 go build \
   -trimpath \
@@ -76,26 +82,27 @@ CGO_ENABLED=0 go build \
 
 Release builds target multiple operating systems and architectures, including:
 
-Operating System Architectures
-Linux AMD64, ARM64, ARM, 386, RISC-V, PPC64, S390X, LoongArch
-Windows AMD64, ARM64, 386
-macOS AMD64, ARM64
-FreeBSD AMD64, ARM64, 386
-OpenBSD AMD64, ARM64, 386, PPC64
-NetBSD AMD64, ARM64, ARM, 386
-DragonFly BSD AMD64
-Solaris AMD64
-illumos AMD64
-WebAssembly WASM
+| Operating System | Architectures |
+| :--- | :--- |
+| **Linux** | AMD64, ARM64, ARM, 386, RISC-V, PPC64, S390X, LoongArch |
+| **Windows** | AMD64, ARM64, 386 |
+| **macOS** | AMD64, ARM64 |
+| **FreeBSD** | AMD64, ARM64, 386 |
+| **OpenBSD** | AMD64, ARM64, 386, PPC64 |
+| **NetBSD** | AMD64, ARM64, ARM, 386 |
+| **DragonFly BSD** | AMD64 |
+| **Solaris** | AMD64 |
+| **illumos** | AMD64 |
+| **WebAssembly** | WASM |
 
-ℹ️ Some targets may not be available with every Go version or build environment.
-WebAssembly binaries require a compatible runtime.
+> ℹ️ Some targets may not be available with every Go version or build environment.  
+> WebAssembly binaries require a compatible runtime.
 
 ---
 
 ## 🏷️ Releases
 
-Releases are automated using GitHub Actions.
+Releases are automated using **GitHub Actions**.
 
 To publish a new version:
 
@@ -116,25 +123,25 @@ The release workflow will:
 
 Hash identification is based on structural characteristics:
 
-· Length of the input
-· Character set
-· Numeric and alphabetic composition
-· Known format prefixes and separators
+- Length of the input
+- Character set
+- Numeric and alphabetic composition
+- Known format prefixes and separators
 
-⚠️ Important: This is heuristic identification, not cryptographic verification. Different algorithms can produce hashes with identical formats, so multiple matches are possible.
+> ⚠️ **Important:** This is *heuristic identification*, **not cryptographic verification**. Different algorithms can produce hashes with identical formats, so multiple matches are possible.
 
 ---
 
 ## 📄 License
 
-Licensed under the Apache License 2.0.
+Licensed under the **Apache License 2.0**.
 
-See LICENSE for the full license text.
+See [LICENSE](LICENSE) for the full license text.
 
 ---
 
 <div align="center">
 
-Built with Go 🐹
+**Built with [Go](https://go.dev)** 🐹
 
 </div>
