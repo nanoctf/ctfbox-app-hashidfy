@@ -31,7 +31,10 @@ jobs:
         id: platforms
         shell: bash
         run: |
-          TARGETS=$(go tool dist list | grep -vE '^(android|ios)/' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          TARGETS=$(go tool dist list \
+            | grep -vE '^(android|ios)/' \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+
           echo "targets=$TARGETS" >> "$GITHUB_OUTPUT"
           echo "Discovered targets: $TARGETS"
 
@@ -45,7 +48,6 @@ jobs:
       matrix:
         target: ${{ fromJson(needs.discover.outputs.targets) }}
 
-    # A failure on one target should not prevent other builds or releases.
     continue-on-error: true
 
     steps:
@@ -97,10 +99,24 @@ jobs:
           zip -j "$ARCHIVE" "$BINARY"
           rm "$BINARY"
 
+      - name: Prepare artifact name
+        id: artifact
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: echo "name=release-${TARGET//\//-}" >> "$GITHUB_OUTPUT"
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.target }}
+          name: ${{ steps.artifact.outputs.name }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 1
+          
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target == '' && 'unknown' || matrix.target }}
           path: dist/*.zip
           if-no-files-found: error
           retention-days: 1
