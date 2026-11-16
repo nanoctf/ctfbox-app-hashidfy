@@ -11,42 +11,63 @@ permissions:
   contents: write
 
 jobs:
-  discover:
-    name: Discover Go platforms
-    runs-on: ubuntu-latest
-    outputs:
-      targets: ${{ steps.platforms.outputs.targets }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: false
-
-      - name: Discover supported targets
-        id: platforms
-        shell: bash
-        run: |
-          TARGETS=$(go tool dist list \
-            | grep -vE '^(android|ios)/' \
-            | jq -R -s -c 'split("\n") | map(select(length > 0))')
-
-          echo "targets=$TARGETS" >> "$GITHUB_OUTPUT"
-          echo "Discovered targets: $TARGETS"
-
   build:
-    name: Build ${{ matrix.target }}
-    needs: discover
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        target: ${{ fromJson(needs.discover.outputs.targets) }}
+        include:
+          # Linux
+          - { goos: linux, goarch: amd64 }
+          - { goos: linux, goarch: arm64 }
+          - { goos: linux, goarch: arm }
+          - { goos: linux, goarch: 386 }
+          - { goos: linux, goarch: riscv64 }
+          - { goos: linux, goarch: ppc64 }
+          - { goos: linux, goarch: ppc64le }
+          - { goos: linux, goarch: s390x }
+          - { goos: linux, goarch: loong64 }
+
+          # Windows
+          - { goos: windows, goarch: amd64 }
+          - { goos: windows, goarch: arm64 }
+          - { goos: windows, goarch: 386 }
+
+          # macOS
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+
+          # FreeBSD
+          - { goos: freebsd, goarch: amd64 }
+          - { goos: freebsd, goarch: arm64 }
+          - { goos: freebsd, goarch: 386 }
+
+          # OpenBSD
+          - { goos: openbsd, goarch: amd64 }
+          - { goos: openbsd, goarch: arm64 }
+          - { goos: openbsd, goarch: 386 }
+          - { goos: openbsd, goarch: ppc64 }
+
+          # NetBSD
+          - { goos: netbsd, goarch: amd64 }
+          - { goos: netbsd, goarch: arm64 }
+          - { goos: netbsd, goarch: 386 }
+          - { goos: netbsd, goarch: arm }
+
+          # DragonFly BSD
+          - { goos: dragonfly, goarch: amd64 }
+
+          # Solaris
+          - { goos: solaris, goarch: amd64 }
+
+          # illumos
+          - { goos: illumos, goarch: amd64 }
+
+          # WebAssembly
+          - { goos: js, goarch: wasm }
+          - { goos: wasip1, goarch: wasm }
 
     continue-on-error: true
 
@@ -60,36 +81,24 @@ jobs:
           go-version-file: go.mod
           cache: false
 
-      - name: Build binary
+      - name: Build
         shell: bash
-        env:
-          TARGET: ${{ matrix.target }}
         run: |
-          GOOS="${TARGET%/*}"
-          GOARCH="${TARGET#*/}"
-
           mkdir -p dist
 
-          case "$GOOS/$GOARCH" in
-            js/wasm|wasip1/wasm)
-              EXT=".wasm"
-              ;;
-            windows/*)
-              EXT=".exe"
-              ;;
-            *)
-              EXT=""
-              ;;
-          esac
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            EXT=".exe"
+          elif [ "${{ matrix.goos }}" = "js" ] || [ "${{ matrix.goos }}" = "wasip1" ]; then
+            EXT=".wasm"
+          fi
 
           BINARY="hash-identify${EXT}"
-          ARCHIVE="hash-identify_${GOOS}_${GOARCH}.zip"
-
-          echo "Building for $GOOS/$GOARCH"
+          ARCHIVE="hash-identify_${{ matrix.goos }}_${{ matrix.goarch }}.zip"
 
           CGO_ENABLED=0 \
-          GOOS="$GOOS" \
-          GOARCH="$GOARCH" \
+          GOOS=${{ matrix.goos }} \
+          GOARCH=${{ matrix.goarch }} \
           go build \
             -trimpath \
             -ldflags="-s -w -buildid=" \
@@ -97,45 +106,30 @@ jobs:
 
           cd dist
           zip -j "$ARCHIVE" "$BINARY"
-          rm "$BINARY"
 
-      - name: Prepare artifact name
-        id: artifact
-        shell: bash
-        env:
-          TARGET: ${{ matrix.target }}
-        run: echo "name=release-${TARGET//\//-}" >> "$GITHUB_OUTPUT"
-
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.artifact.outputs.name }}
-          path: dist/*.zip
-          if-no-files-found: error
-          retention-days: 1
-          
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ matrix.target == '' && 'unknown' || matrix.target }}
+          name: hash-identify-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/*.zip
           if-no-files-found: error
           retention-days: 1
 
   release:
-    name: Publish GitHub Release
+    name: Publish Release
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download all build artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: release-*
+          pattern: hash-identify-*
           path: dist
           merge-multiple: true
 
-      - name: Publish release
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
