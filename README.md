@@ -1,17 +1,12 @@
-hash-identify
+# hash-identify
 
 A lightweight, cross-platform hash identification CLI written in Go.
-
-https://img.shields.io/badge/Go-1.21%2B-00ADD8?logo=go&logoColor=white
-https://img.shields.io/badge/License-Apache%202.0-blue.svg
-https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20BSD%20%7C%20WASM-informational
-https://img.shields.io/github/v/release/nanoctf/ctfbox-app-hashidfy?color=success
 
 Identify possible hash algorithms using hash length, character patterns, and format prefixes. Built as a compact standalone executable with zero third-party dependencies.
 
 ---
 
-✨ Features
+## ✨ Features
 
  
 🔎 Broad Detection Recognizes numerous common hash algorithms and variants.
@@ -23,7 +18,7 @@ Identify possible hash algorithms using hash length, character patterns, and for
 
 ---
 
-🚀 Usage
+## 🚀 Usage
 
 Direct input
 
@@ -52,7 +47,7 @@ Press <kbd>Ctrl</kbd>+<kbd>C</kbd> to exit.
 
 ---
 
-📦 Installation
+## 📦 Installation
 
 Prebuilt binaries
 
@@ -77,7 +72,7 @@ CGO_ENABLED=0 go build \
 
 ---
 
-🖥️ Supported platforms
+## 🖥️ Supported platforms
 
 Release builds target multiple operating systems and architectures, including:
 
@@ -98,7 +93,7 @@ WebAssembly binaries require a compatible runtime.
 
 ---
 
-🏷️ Releases
+## 🏷️ Releases
 
 Releases are automated using GitHub Actions.
 
@@ -117,7 +112,7 @@ The release workflow will:
 
 ---
 
-🔍 How it works
+## 🔍 How it works
 
 Hash identification is based on structural characteristics:
 
@@ -130,7 +125,7 @@ Hash identification is based on structural characteristics:
 
 ---
 
-📄 License
+## 📄 License
 
 Licensed under the Apache License 2.0.
 
